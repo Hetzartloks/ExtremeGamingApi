@@ -24,6 +24,34 @@ exports.getById = async (req, res) => {
   }
 };
 
+exports.getByName = async (req, res) => {
+  try {
+    const {title} = req.body;
+
+    if(!title){
+      return res.status(400).json({error: "Titulo de juego requerido en Body json"});
+    }
+
+    const snapshot = await gamesCol.get();
+    const filterGames = snapshot.docs
+      .filter(doc => {
+        const gamesData = doc.data();
+        return gamesData.title &&
+               gamesData.title.toLowerCase().includes(title.toLowerCase());
+      })
+      .map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    if(filterGames.length === 0){
+      return res.status(404).json({error: `No se encontraron juegos que contengan: ${title}`});
+    }
+
+    res.json(filterGames);
+
+  } catch (err) {
+    res.status(500).json({ error: `Error en el servidor: ${err.message}`});
+  }
+};
+
 // 3) Crear un nuevo juego
 exports.create = async (req, res) => {
   try {
