@@ -6,8 +6,11 @@ const cors    = require('cors');
 const authR  = require('./routes/auth');
 const usersR = require('./routes/users');
 const gamesR = require('./routes/games');
+const categoriesR = require('./routes/categories');
 
 const app = express();
+
+
 app.use(cors());
 app.use(express.json());
 
@@ -15,6 +18,7 @@ app.use(express.json());
 app.use('/api/auth',  authR);   // Registro, login, refresh
 app.use('/api/users', usersR);  // Perfil protegido (me, update)
 app.use('/api/games', gamesR);  // CRUD de juegos
+app.use('/api/categories', categoriesR) // CRUD de categorias
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

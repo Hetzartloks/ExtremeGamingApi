@@ -18,4 +18,3 @@ router.post('/refresh',  ctrl.refresh);
 router.post('/logout',   auth, ctrl.logout);
 
 module.exports = router;
-
