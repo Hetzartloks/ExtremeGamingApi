@@ -1,0 +1,22 @@
+// server.js
+require('dotenv').config();
+const express = require('express');
+const cors    = require('cors');
+
+const authR  = require('./routes/auth');
+const usersR = require('./routes/users');
+const gamesR = require('./routes/games');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Rutas
+app.use('/api/auth',  authR);   // Registro, login, refresh
+app.use('/api/users', usersR);  // Perfil protegido (me, update)
+app.use('/api/games', gamesR);  // CRUD de juegos
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server escuchando en http://localhost:${PORT}`);
+});
