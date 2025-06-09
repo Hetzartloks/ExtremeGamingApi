@@ -69,7 +69,7 @@ exports.create = async (req, res) => {
       { field: 'developer', validate: val => typeof val === 'string' && val.trim().length > 0, message: 'El desarrollador debe ser un texto válido' },
       { field: 'category', validate: val => typeof val === 'string' && val.trim().length > 0, message: 'La categoría debe ser un texto válido' },
       { field: 'price', validate: val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, message: 'El precio debe ser un número positivo' },
-      { field: 'coverImg', validate: val => typeof val === 'string' && /^https?:\/\/.+/.test(val), message: 'La imagen de portada debe ser una URL válida' },
+      { field: 'coverImg', validate: val => typeof val === 'string' && (/^data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]+$/.test(val) || /^[A-Za-z0-9+/=]+$/.test(val)), message: 'La imagen de portada debe ser una cadena base64 válida' },
       { field: 'discount', validate: val => val === undefined || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 100), message: 'El descuento debe ser un número entre 0 y 100' },
       { field: 'stock', validate: val => val === undefined || (typeof val === 'number' && val >= 0), message: 'El stock debe ser un número no negativo' },
       { field: 'active', validate: val => val === undefined || typeof val === 'boolean', message: 'El campo active debe ser un valor booleano' }
