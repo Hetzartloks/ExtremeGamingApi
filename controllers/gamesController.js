@@ -7,7 +7,7 @@ exports.list = async (req, res) => {
   try {
     const snapshot = await gamesCol.get();
     const games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.json(games);
+    res.status(200).json(games);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -19,7 +19,7 @@ exports.getById = async (req, res) => {
     const doc = await gamesCol.doc(req.params.id).get();
     if (!doc.exists) 
       return res.status(404).json({ message: 'Juego no encontrado' });
-    res.json({ id: doc.id, ...doc.data() });
+    res.status(200).json({ id: doc.id, ...doc.data() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -27,10 +27,10 @@ exports.getById = async (req, res) => {
 
 exports.getByName = async (req, res) => {
   try {
-    const {title} = req.body;
+    const { title } = req.query;
 
     if(!title){
-      return res.status(400).json({error: "Titulo de juego requerido en Body json"});
+      return res.status(400).json({error: "Titulo de juego requerido en query de Title"});
     }
 
     const snapshot = await gamesCol.get();
@@ -46,7 +46,7 @@ exports.getByName = async (req, res) => {
       return res.status(404).json({error: `No se encontraron juegos que contengan: ${title}`});
     }
 
-    res.json(filterGames);
+    res.status(200).json(filterGames);
 
   } catch (err) {
     res.status(500).json({ error: `Error en el servidor: ${err.message}`});
@@ -71,7 +71,6 @@ exports.create = async (req, res) => {
       { field: 'price', validate: val => !isNaN(parseFloat(val)) && parseFloat(val) >= 0, message: 'El precio debe ser un número positivo' },
       { field: 'coverImg', validate: val => typeof val === 'string' && (/^data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]+$/.test(val) || /^[A-Za-z0-9+/=]+$/.test(val)), message: 'La imagen de portada debe ser una cadena base64 válida' },
       { field: 'discount', validate: val => val === undefined || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 100), message: 'El descuento debe ser un número entre 0 y 100' },
-      { field: 'stock', validate: val => val === undefined || (typeof val === 'number' && val >= 0), message: 'El stock debe ser un número no negativo' },
       { field: 'active', validate: val => val === undefined || typeof val === 'boolean', message: 'El campo active debe ser un valor booleano' }
     ];
 

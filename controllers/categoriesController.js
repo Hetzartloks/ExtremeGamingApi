@@ -7,7 +7,7 @@ async function list(req, res){
         const snapshot = await categoriesCol.get();
         const categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        res.json(categories);
+        res.status(200).json(categories);
 
     }catch(err){
         res.status(500).json({ error: `Error en el servidor: ${err.message}`});
@@ -18,10 +18,10 @@ async function list(req, res){
 async function getByName(req, res){
     try{
         // Get title del cuerpo en json
-        const { title } = req.body;
+        const title = req.query.title !== undefined ? req.query.title : req.body.title;
         
-        if(!title){
-            return res.status(400).json({error: "Titulo de categoria requerido en Body json"});
+        if (title === undefined || title === "" || title === "undefined") {
+            return res.status(200).json([])
         }
 
         //filtro de categorias por texto ingresado
@@ -35,7 +35,7 @@ async function getByName(req, res){
             map(doc => ({ id: doc.id, ...doc.data() }));
 
         if(filterCategories.length === 0){
-            return res.status(404).json({error: `No se encontraron categorías que contengan: ${title}`});
+            return res.status(200).json([]);
         }
 
         res.json(filterCategories)
