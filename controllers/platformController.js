@@ -14,12 +14,12 @@ async function list(req, res){
     }
 }
 
-// Obtener una plataforma por su nombre (query param: title)
+// Obtener una plataforma por su nombre
 async function getByName(req, res){
     try{
         const title = req.query.title;
-        if (typeof title !== 'string' || title.trim() === "" || title === "undefined") {
-            return res.status(200).json([]);
+        if(!title){
+            return res.status(400).json({error: "Titulo de juego requerido en query de Title"});
         }
 
         const snapshot = await platformsCol.get();
