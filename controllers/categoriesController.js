@@ -18,8 +18,7 @@ async function list(req, res){
 async function getByName(req, res){
     try{
         // Get title del cuerpo en json
-        const title = req.query.title !== undefined ? req.query.title : req.body.title;
-        
+        const title = req.query.title;
         if (title === undefined || title === "" || title === "undefined") {
             return res.status(200).json([])
         }
@@ -32,7 +31,8 @@ async function getByName(req, res){
                 return categoryData.title &&
                         categoryData.title.toLowerCase().includes(title.toLowerCase());
             }).
-            map(doc => ({ id: doc.id, ...doc.data() }));
+            map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(categories => categories.active !== false);
 
         if(filterCategories.length === 0){
             return res.status(200).json([]);
@@ -80,36 +80,66 @@ async function create(req, res){
     }
 };
 
-// Actualizar una categoria (poco necesaria, pero.. ¿y si?)
+// Actualizar una categoria
 async function update(req, res){
     try{
-        const id = req.params.id;
-        const { id: bodyId, ...updateData } = req.body;
-        await categoriesCol.doc(id).update(updateData);
-        const updated = await categoriesCol.doc(id).get();
+        const id = req.query.id;
+        if(!id){
+            return res.status(400).json({error: `Falta el parámetro 'id' en la query`});
+        }
 
-        res.json({ id: updated.id, ...updated.data() });
+        const docRef = categoriesCol.doc(id);
+        const docSnap = await docRef.get();
+        if (!docSnap.exists) {
+            return res.status(404).json({error: "Categoría no encontrada"});
+        }
+
+        // Validación de datos
+        const updateData = {};
+        if (req.body.hasOwnProperty('title')) {
+            if (typeof req.body.title !== 'string' || req.body.title.trim() === "") {
+                return res.status(400).json({error: "El campo 'title' debe ser un string no vacío."});
+            }
+            updateData.title = req.body.title.trim();
+        }
+        if (req.body.hasOwnProperty('description')) {
+            if (typeof req.body.description !== 'string' || req.body.description.trim() === "") {
+                return res.status(400).json({error: "El campo 'description' debe ser un string no vacío."});
+            }
+            updateData.description = req.body.description.trim();
+        }
+        if (req.body.hasOwnProperty('active')) {
+            if (typeof req.body.active !== 'boolean') {
+                return res.status(400).json({error: "El campo 'active' debe ser booleano."});
+            }
+            updateData.active = req.body.active;
+        }
+
+        await docRef.update(updateData);
+
+        res.status(200).json({ id, ...updateData });
+
     } catch(err){
         res.status(500).json({ error: `Error en el servidor: ${err.message}`});
     }
 };
 
-// Eliminar una categoria (no deberia de ser usadad, pero.. ¿y si?)
+// "Eliminar" una categoria (solo desactiva)
 async function remove(req, res){
     try{
-        const id = req.params.id;
-        const categoryDoc = await categoriesCol.doc(id).get();
+        const id = req.query.id;
+        if(!id){
+            return res.status(400).json({error: `Falta el parámetro 'id' en la query`});
+        }
 
-        const categoryData = categoryDoc.data();
+        await categoriesCol.doc(id).update({active: false});
+        const updated = await categoriesCol.doc(id).get();
 
-        await categoriesCol.doc(id).delete();
-
-        res.status(200).json({ message: `Categoria "${categoryData.title}" eliminada satisfactoriamente` });
-
-    } catch(err) {
+        res.status(200).json({message: `Categoría desactivada correctamente`, id: updated.id, ...updated.data()});
+    }catch(err){
         res.status(500).json({ error: `Error en el servidor: ${err.message}`});
     }
-};
+}
 
 //exportacion de las funciones
 module.exports={
